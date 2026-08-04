@@ -2,7 +2,7 @@ import { HotspotItem, usePanoramaScene } from '@/hooks/usePanoramaScene';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { GLView } from 'expo-gl';
 import React, { useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import HotspotOverlay from './HotspotOverlay';
 
 interface Props {
@@ -16,6 +16,7 @@ export default function PanoramaViewer({ imageUrl, hotspots, onBack }: Props) {
   const {
     panHandlers,
     projectedHotspots,
+    loadError,
     onContextCreate,
     updateCameraAspect,
     disposeScene,
@@ -47,6 +48,13 @@ export default function PanoramaViewer({ imageUrl, hotspots, onBack }: Props) {
 
         <HotspotOverlay hotspots={projectedHotspots} />
       </View>
+
+      {loadError && (
+        <View style={styles.errorOverlay} pointerEvents="none">
+          <Ionicons name="warning-outline" size={32} color="#F87171" />
+          <Text style={styles.errorText}>{loadError}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -67,5 +75,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  errorOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+    gap: 12,
+  },
+  errorText: {
+    color: '#F1F5F9',
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

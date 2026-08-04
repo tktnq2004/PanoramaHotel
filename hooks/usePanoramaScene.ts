@@ -1,7 +1,7 @@
 import { GLView } from 'expo-gl';
 import { Renderer, TextureLoader } from 'expo-three';
 import { useRef, useState } from 'react';
-import { PanResponder, PixelRatio } from 'react-native';
+import { PanResponder } from 'react-native';
 import * as THREE from 'three';
 
 export interface HotspotItem {
@@ -39,12 +39,16 @@ export function usePanoramaScene({
   const sceneRef = useRef<THREE.Scene | null>(null);
   const sphereMeshRef = useRef<THREE.Mesh | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const rendererRef = useRef<Renderer | null>(null);
+  const glRef = useRef<any>(null);
+  const lastSizeRef = useRef({ width: 0, height: 0 });
 
   const lonRef = useRef(0);
   const latRef = useRef(0);
   const lastGestureRef = useRef({ x: 0, y: 0 });
 
   const [projectedHotspots, setProjectedHotspots] = useState<ProjectedHotspot[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Xử lý PanResponder cảm ứng mượt mà
   const panResponder = useRef(
@@ -67,86 +71,153 @@ export function usePanoramaScene({
     })
   ).current;
 
+  // Áp size thật của GL surface cho renderer + camera. Không dùng screenWidth/
+  // screenHeight (từ useWindowDimensions) làm nguồn chân lý vì chúng có thể lệch
+  // pha với kích thước thật của GLView khi ScreenOrientation.lockAsync đang xoay
+  // màn hình bất đồng bộ — đây là nguyên nhân ảnh bị bóp méo ở lần load đầu và
+  // luôn xảy ra trên các thiết bị/emulator có độ trễ xoay lớn hơn.
+  const applySurfaceSize = (width: number, height: number) => {
+    const renderer = rendererRef.current;
+    const camera = cameraRef.current;
+    if (!renderer || !camera || width <= 0 || height <= 0) return;
+    if (lastSizeRef.current.width === width && lastSizeRef.current.height === height) return;
+
+    lastSizeRef.current = { width, height };
+    renderer.setSize(width, height);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+  };
+
   const updateCameraAspect = () => {
-    if (cameraRef.current && screenWidth > 0 && screenHeight > 0) {
-      cameraRef.current.aspect = screenWidth / screenHeight;
-      cameraRef.current.updateProjectionMatrix();
+    if (glRef.current) {
+      applySurfaceSize(glRef.current.drawingBufferWidth, glRef.current.drawingBufferHeight);
     }
   };
 
   const onContextCreate = async (gl: any) => {
-    const renderer = new Renderer({ gl });
-    renderer.setSize(gl.drawingBufferWidth, gl.drawingBufferHeight);
-    renderer.setPixelRatio(Math.min(2, PixelRatio.get()));
+    // Bọc toàn bộ phần khởi tạo (load + upload texture) trong try/catch: đây là
+    // chỗ dễ ném exception nhất (ảnh hỏng, sai định dạng, URL/asset không tồn
+    // tại...). Không bắt thì app chỉ đứng hình màn đen mà không rõ vì sao. Bắt
+    // được thì log rõ nguyên nhân + hiện cảnh báo cho người dùng thay vì im lặng.
+    try {
+      glRef.current = gl;
 
-    const scene = new THREE.Scene();
-    sceneRef.current = scene;
+      const renderer = new Renderer({ gl });
+      rendererRef.current = renderer;
 
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      gl.drawingBufferWidth / gl.drawingBufferHeight,
-      0.1,
-      1000
-    );
-    camera.position.set(0, 0, 0);
-    cameraRef.current = camera;
+      const scene = new THREE.Scene();
+      sceneRef.current = scene;
 
-    const geometry = new THREE.SphereGeometry(SPHERE_RADIUS, 60, 40);
-    geometry.scale(-1, 1, 1);
+      const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+      camera.position.set(0, 0, 0);
+      cameraRef.current = camera;
 
-    const texture = await new TextureLoader().loadAsync(imageUrl);
+      applySurfaceSize(gl.drawingBufferWidth, gl.drawingBufferHeight);
 
-    const material = new THREE.MeshBasicMaterial({ map: texture });
-    const sphere = new THREE.Mesh(geometry, material);
-    scene.add(sphere);
-    sphereMeshRef.current = sphere;
+      const geometry = new THREE.SphereGeometry(SPHERE_RADIUS, 60, 40);
+      geometry.scale(-1, 1, 1);
 
-    const targetVector = new THREE.Vector3();
+      const texture = await new TextureLoader().loadAsync(imageUrl);
 
-    const render = () => {
-      animationFrameRef.current = requestAnimationFrame(render);
-
-      const phi = THREE.MathUtils.degToRad(90 - latRef.current);
-      const theta = THREE.MathUtils.degToRad(lonRef.current);
-
-      targetVector.x = SPHERE_RADIUS * Math.sin(phi) * Math.cos(theta);
-      targetVector.y = SPHERE_RADIUS * Math.cos(phi);
-      targetVector.z = SPHERE_RADIUS * Math.sin(phi) * Math.sin(theta);
-
-      camera.lookAt(targetVector);
-      camera.updateMatrixWorld();
-
-      if (hotspots && hotspots.length > 0) {
-        const updated: ProjectedHotspot[] = hotspots.map((hs) => {
-          const pos3D = new THREE.Vector3(...hs.position)
-            .normalize()
-            .multiplyScalar(HOTSPOT_RADIUS);
-
-          const camDir = new THREE.Vector3();
-          camera.getWorldDirection(camDir);
-          const isBehind = pos3D.clone().normalize().dot(camDir) < 0.2;
-
-          pos3D.project(camera);
-
-          const screenX = ((pos3D.x + 1) * screenWidth) / 2;
-          const screenY = ((-pos3D.y + 1) * screenHeight) / 2;
-
-          return {
-            ...hs,
-            screenX,
-            screenY,
-            visible: !isBehind && pos3D.z < 1,
-          };
-        });
-
-        setProjectedHotspots(updated);
+      // GL không tự báo lỗi khi ảnh vượt GL_MAX_TEXTURE_SIZE của thiết bị —
+      // texture chỉ âm thầm "incomplete" (đen/méo) mà không ném exception nào.
+      // Chủ động so sánh kích thước thật của ảnh với giới hạn GPU và tự ném lỗi
+      // rõ ràng để catch bên dưới xử lý thống nhất, thay vì để hiện tượng lạ.
+      const maxTextureSize: number = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+      const imgWidth = texture.image?.width ?? 0;
+      const imgHeight = texture.image?.height ?? 0;
+      if (imgWidth > maxTextureSize || imgHeight > maxTextureSize) {
+        throw new Error(
+          `Ảnh panorama ${imgWidth}x${imgHeight} vượt quá GL_MAX_TEXTURE_SIZE (${maxTextureSize}) mà GPU thiết bị này hỗ trợ. Hãy resize ảnh xuống tối đa ${maxTextureSize}px chiều rộng.`
+        );
       }
 
-      renderer.render(scene, camera);
-      gl.endFrameEXP();
-    };
+      // Ảnh nguồn có thể ở bất kỳ kích thước/tỉ lệ nào (kể cả ảnh người dùng
+      // upload sau này, không nhất thiết lũy thừa 2). Mipmap mặc định của
+      // three.js với ảnh NPOT khiến texture "incomplete" -> hiện màu đen trên
+      // nhiều driver GLES Android. Tắt mipmap + dùng lọc tuyến tính để luôn an
+      // toàn với mọi kích thước ảnh, đồng thời đỡ tốn thời gian dựng mipmap.
+      texture.generateMipmaps = false;
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.wrapS = THREE.ClampToEdgeWrapping;
+      texture.wrapT = THREE.ClampToEdgeWrapping;
 
-    render();
+      const material = new THREE.MeshBasicMaterial({ map: texture });
+      const sphere = new THREE.Mesh(geometry, material);
+      scene.add(sphere);
+      sphereMeshRef.current = sphere;
+
+      const targetVector = new THREE.Vector3();
+
+      const render = () => {
+        try {
+          animationFrameRef.current = requestAnimationFrame(render);
+
+          // Đồng bộ lại kích thước renderer/camera mỗi frame theo buffer GL thật,
+          // bắt kịp thời điểm xoay màn hình xong dù nó xảy ra bất đồng bộ.
+          applySurfaceSize(gl.drawingBufferWidth, gl.drawingBufferHeight);
+
+          const phi = THREE.MathUtils.degToRad(90 - latRef.current);
+          const theta = THREE.MathUtils.degToRad(lonRef.current);
+
+          targetVector.x = SPHERE_RADIUS * Math.sin(phi) * Math.cos(theta);
+          targetVector.y = SPHERE_RADIUS * Math.cos(phi);
+          targetVector.z = SPHERE_RADIUS * Math.sin(phi) * Math.sin(theta);
+
+          camera.lookAt(targetVector);
+          camera.updateMatrixWorld();
+
+          if (hotspots && hotspots.length > 0) {
+            const updated: ProjectedHotspot[] = hotspots.map((hs) => {
+              const pos3D = new THREE.Vector3(...hs.position)
+                .normalize()
+                .multiplyScalar(HOTSPOT_RADIUS);
+
+              const camDir = new THREE.Vector3();
+              camera.getWorldDirection(camDir);
+              const isBehind = pos3D.clone().normalize().dot(camDir) < 0.2;
+
+              pos3D.project(camera);
+
+              const screenX = ((pos3D.x + 1) * screenWidth) / 2;
+              const screenY = ((-pos3D.y + 1) * screenHeight) / 2;
+
+              return {
+                ...hs,
+                screenX,
+                screenY,
+                visible: !isBehind && pos3D.z < 1,
+              };
+            });
+
+            setProjectedHotspots(updated);
+          }
+
+          renderer.render(scene, camera);
+          gl.endFrameEXP();
+        } catch (error) {
+          // Lỗi xảy ra giữa lúc render (vd. context bị mất) sẽ lặp lại mỗi frame
+          // nếu không dừng vòng lặp -> spam log/crash liên tục. Dừng hẳn RAF loop
+          // và báo lỗi một lần duy nhất thay vì để nó lặp 60 lần/giây.
+          if (animationFrameRef.current !== null) {
+            cancelAnimationFrame(animationFrameRef.current);
+            animationFrameRef.current = null;
+          }
+          console.warn(`[usePanoramaScene] Lỗi khi render panorama "${imageUrl}":`, error);
+          setLoadError('Đã xảy ra lỗi khi hiển thị ảnh panorama này.');
+        }
+      };
+
+      render();
+    } catch (error) {
+      console.warn(`[usePanoramaScene] Không thể tải ảnh panorama "${imageUrl}":`, error);
+      setLoadError(
+        error instanceof Error
+          ? error.message
+          : 'Không thể tải ảnh panorama. Vui lòng kiểm tra lại file ảnh.'
+      );
+    }
   };
 
   const disposeScene = () => {
@@ -168,6 +239,7 @@ export function usePanoramaScene({
   return {
     panHandlers: panResponder.panHandlers,
     projectedHotspots,
+    loadError,
     onContextCreate,
     updateCameraAspect,
     disposeScene,

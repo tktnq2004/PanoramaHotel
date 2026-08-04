@@ -1,6 +1,6 @@
 import { Hotspot } from '@/constants/data';
 import React from 'react';
-import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface Props {
     info: Hotspot | null;
@@ -8,28 +8,30 @@ interface Props {
 }
 
 export default function HotspotInfoModal({ info, onClose }: Props) {
+    if (!info) return null;
+
     return (
-        <Modal visible={!!info} transparent animationType="fade">
-            <View style={styles.modalBg}>
-                <View style={styles.modalCard}>
-                    <Text style={styles.modalName}>{info?.name}</Text>
-                    <Text style={styles.modalDesc}>{info?.description}</Text>
-                    <TouchableOpacity
-                        style={styles.closeBtn}
-                        onPress={onClose}
-                        activeOpacity={0.8}
-                    >
-                        <Text style={styles.closeBtnText}>Đóng</Text>
-                    </TouchableOpacity>
-                </View>
+        <View style={styles.modalBg} pointerEvents="auto">
+            <View style={styles.modalCard}>
+                <Text style={styles.modalName}>{info.name}</Text>
+                <Text style={styles.modalDesc}>{info.description}</Text>
+                <TouchableOpacity
+                    style={styles.closeBtn}
+                    onPress={onClose}
+                    activeOpacity={0.8}
+                >
+                    <Text style={styles.closeBtnText}>Đóng</Text>
+                </TouchableOpacity>
             </View>
-        </Modal>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     modalBg: {
-        flex: 1,
+        ...StyleSheet.absoluteFillObject,
+        zIndex: 100,
+        elevation: 100,
         backgroundColor: 'rgba(0, 0, 0, 0.7)',
         justifyContent: 'center',
         alignItems: 'center',
