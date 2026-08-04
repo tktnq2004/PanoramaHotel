@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Colors } from '@/constants/theme';
 
 interface Props {
     roomName: string;
@@ -38,34 +39,34 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     backBtnWrapper: {
-        backgroundColor: 'rgba(15, 23, 42, 0.85)',
+        backgroundColor: Colors.overlay.header,
         paddingHorizontal: 14,
         paddingVertical: 8,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.15)',
+        borderColor: Colors.overlay.borderLight,
     },
     backBtn: {
-        color: '#FFF',
+        color: Colors.white,
         fontSize: 14,
         fontWeight: '600',
     },
     titleContainer: {
         alignItems: 'flex-end',
-        backgroundColor: 'rgba(15, 23, 42, 0.85)',
+        backgroundColor: Colors.overlay.header,
         paddingHorizontal: 14,
         paddingVertical: 6,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.15)',
+        borderColor: Colors.overlay.borderLight,
     },
     roomName: {
-        color: '#FFF',
+        color: Colors.white,
         fontSize: 15,
         fontWeight: 'bold',
     },
     panoTitle: {
-        color: '#94A3B8',
+        color: Colors.slate[400],
         fontSize: 11,
         marginTop: 2,
     },

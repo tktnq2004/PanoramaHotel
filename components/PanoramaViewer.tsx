@@ -1,3 +1,4 @@
+import { Colors } from '@/constants/theme';
 import { HotspotItem, usePanoramaScene } from '@/hooks/usePanoramaScene';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { GLView } from 'expo-gl';
@@ -42,7 +43,7 @@ export default function PanoramaViewer({ imageUrl, hotspots, onBack }: Props) {
             onPress={onBack}
             activeOpacity={0.7}
           >
-            <Ionicons name="arrow-back" size={24} color="#FFF" />
+            <Ionicons name="arrow-back" size={24} color={Colors.white} />
           </TouchableOpacity>
         )}
 
@@ -51,7 +52,7 @@ export default function PanoramaViewer({ imageUrl, hotspots, onBack }: Props) {
 
       {loadError && (
         <View style={styles.errorOverlay} pointerEvents="none">
-          <Ionicons name="warning-outline" size={32} color="#F87171" />
+          <Ionicons name="warning-outline" size={32} color={Colors.red.warning} />
           <Text style={styles.errorText}>{loadError}</Text>
         </View>
       )}
@@ -60,21 +61,21 @@ export default function PanoramaViewer({ imageUrl, hotspots, onBack }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+  container: { flex: 1, backgroundColor: Colors.black },
   glView: { flex: 1 },
   backButton: {
     position: 'absolute',
     top: 24,
     left: 24,
     zIndex: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: Colors.overlay.button,
     width: 44,
     height: 44,
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: Colors.overlay.borderSubtle,
   },
   errorOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -84,7 +85,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   errorText: {
-    color: '#F1F5F9',
+    color: Colors.slate[100],
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 20,

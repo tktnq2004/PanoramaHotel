@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ProjectedHotspot } from '@/hooks/usePanoramaScene';
+import { Colors } from '@/constants/theme';
 
 interface Props {
   hotspots: ProjectedHotspot[];
@@ -38,20 +39,20 @@ export default function HotspotOverlay({ hotspots }: Props) {
 const styles = StyleSheet.create({
   hotspotBtn: {
     position: 'absolute',
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: Colors.overlay.scrimStrong,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: '#007AFF',
+    borderColor: Colors.blue.ios,
     alignItems: 'center',
     justifyContent: 'center',
     minWidth: 100,
     elevation: 5,
-    shadowColor: '#000',
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
   },
-  hotspotText: { color: '#FFF', fontWeight: '600', fontSize: 13 },
+  hotspotText: { color: Colors.white, fontWeight: '600', fontSize: 13 },
 });

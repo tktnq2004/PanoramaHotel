@@ -1,6 +1,7 @@
 import HotspotInfoModal from '@/components/HotspotInfoModal';
 import PanoramaViewer from '@/components/PanoramaViewer';
 import ViewerHeader from '@/components/ViewerHeader';
+import { Colors } from '@/constants/theme';
 import { usePanoramaNavigation } from '@/hooks/usePanoramaNavigation';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ScreenOrientation from 'expo-screen-orientation';
@@ -63,7 +64,7 @@ export default function ViewerScreen() {
                 />
             ) : (
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#FFFFFF" />
+                    <ActivityIndicator size="large" color={Colors.white} />
                 </View>
             )}
 
@@ -78,7 +79,7 @@ export default function ViewerScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#000',
+        backgroundColor: Colors.black,
     },
     loadingContainer: {
         flex: 1,

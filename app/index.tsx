@@ -1,4 +1,5 @@
 import { PANORAMA_DATA, Room } from '@/constants/data';
+import { Colors } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
@@ -61,7 +62,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: Colors.slate[900],
   },
   header: {
     paddingHorizontal: 20,
@@ -71,11 +72,11 @@ const styles = StyleSheet.create({
   headername: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: Colors.white,
   },
   headerSubname: {
     fontSize: 14,
-    color: '#94A3B8',
+    color: Colors.slate[400],
     marginTop: 4,
   },
   listContainer: {
@@ -86,9 +87,9 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: '#1E293B',
+    backgroundColor: Colors.slate[800],
     elevation: 4,
-    shadowColor: '#000',
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
@@ -100,17 +101,17 @@ const styles = StyleSheet.create({
   },
   cardOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    backgroundColor: Colors.overlay.scrimLight,
     justifyContent: 'flex-end',
     padding: 16,
   },
   cardname: {
-    color: '#FFFFFF',
+    color: Colors.white,
     fontSize: 20,
     fontWeight: 'bold',
   },
   cardSubname: {
-    color: '#E2E8F0',
+    color: Colors.slate[200],
     fontSize: 13,
     marginTop: 4,
   },

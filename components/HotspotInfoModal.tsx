@@ -1,4 +1,5 @@
 import { Hotspot } from '@/constants/data';
+import { Colors } from '@/constants/theme';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -32,39 +33,39 @@ const styles = StyleSheet.create({
         ...StyleSheet.absoluteFillObject,
         zIndex: 100,
         elevation: 100,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        backgroundColor: Colors.overlay.scrim,
         justifyContent: 'center',
         alignItems: 'center',
     },
     modalCard: {
         width: '50%',
         maxWidth: 420,
-        backgroundColor: '#1E293B',
+        backgroundColor: Colors.slate[800],
         borderRadius: 16,
         padding: 20,
         borderWidth: 1,
-        borderColor: '#334155',
+        borderColor: Colors.slate[700],
     },
     modalName: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#FFFFFF',
+        color: Colors.white,
         marginBottom: 8,
     },
     modalDesc: {
         fontSize: 14,
-        color: '#CBD5E1',
+        color: Colors.slate[300],
         marginBottom: 20,
         lineHeight: 20,
     },
     closeBtn: {
-        backgroundColor: '#2563EB',
+        backgroundColor: Colors.blue.accent,
         paddingVertical: 10,
         borderRadius: 8,
         alignItems: 'center',
     },
     closeBtnText: {
-        color: '#FFF',
+        color: Colors.white,
         fontWeight: 'bold',
     },
 });

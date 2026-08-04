@@ -1,25 +1,13 @@
-import { GLView } from 'expo-gl';
 import { Renderer, TextureLoader } from 'expo-three';
 import { useRef, useState } from 'react';
-import { PanResponder } from 'react-native';
 import * as THREE from 'three';
+import { HotspotItem, ProjectedHotspot, projectHotspots } from '@/utils/projectHotspot';
+import { useGLViewportSync } from './useGLViewportSync';
+import { useOrbitControls } from './useOrbitControls';
 
-export interface HotspotItem {
-  id: string;
-  name: string;
-  position: [number, number, number];
-  type?: 'INFO' | 'NAVIGATION';
-  onPress: () => void;
-}
-
-export interface ProjectedHotspot extends HotspotItem {
-  screenX: number;
-  screenY: number;
-  visible: boolean;
-}
+export type { HotspotItem, ProjectedHotspot } from '@/utils/projectHotspot';
 
 const SPHERE_RADIUS = 500;
-const HOTSPOT_RADIUS = 490;
 
 interface UsePanoramaSceneParams {
   imageUrl: string;
@@ -34,65 +22,15 @@ export function usePanoramaScene({
   screenWidth,
   screenHeight,
 }: UsePanoramaSceneParams) {
-    
-  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const sphereMeshRef = useRef<THREE.Mesh | null>(null);
   const animationFrameRef = useRef<number | null>(null);
-  const rendererRef = useRef<Renderer | null>(null);
-  const glRef = useRef<any>(null);
-  const lastSizeRef = useRef({ width: 0, height: 0 });
 
-  const lonRef = useRef(0);
-  const latRef = useRef(0);
-  const lastGestureRef = useRef({ x: 0, y: 0 });
+  const { panHandlers, lonRef, latRef } = useOrbitControls();
+  const { glRef, rendererRef, cameraRef, applySurfaceSize, syncFromGL } = useGLViewportSync();
 
   const [projectedHotspots, setProjectedHotspots] = useState<ProjectedHotspot[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
-
-  // Xử lý PanResponder cảm ứng mượt mà
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        lastGestureRef.current = { x: 0, y: 0 };
-      },
-      onPanResponderMove: (_, gestureState) => {
-        const dx = gestureState.dx - lastGestureRef.current.x;
-        const dy = gestureState.dy - lastGestureRef.current.y;
-
-        // Xoay góc vuốt phù hợp với hướng LANDSCAPE_RIGHT
-        lonRef.current -= dx * 0.25;
-        latRef.current += dy * 0.25;
-        latRef.current = Math.max(-85, Math.min(85, latRef.current));
-
-        lastGestureRef.current = { x: gestureState.dx, y: gestureState.dy };
-      },
-    })
-  ).current;
-
-  // Áp size thật của GL surface cho renderer + camera. Không dùng screenWidth/
-  // screenHeight (từ useWindowDimensions) làm nguồn chân lý vì chúng có thể lệch
-  // pha với kích thước thật của GLView khi ScreenOrientation.lockAsync đang xoay
-  // màn hình bất đồng bộ — đây là nguyên nhân ảnh bị bóp méo ở lần load đầu và
-  // luôn xảy ra trên các thiết bị/emulator có độ trễ xoay lớn hơn.
-  const applySurfaceSize = (width: number, height: number) => {
-    const renderer = rendererRef.current;
-    const camera = cameraRef.current;
-    if (!renderer || !camera || width <= 0 || height <= 0) return;
-    if (lastSizeRef.current.width === width && lastSizeRef.current.height === height) return;
-
-    lastSizeRef.current = { width, height };
-    renderer.setSize(width, height);
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
-  };
-
-  const updateCameraAspect = () => {
-    if (glRef.current) {
-      applySurfaceSize(glRef.current.drawingBufferWidth, glRef.current.drawingBufferHeight);
-    }
-  };
 
   const onContextCreate = async (gl: any) => {
     // Bọc toàn bộ phần khởi tạo (load + upload texture) trong try/catch: đây là
@@ -169,29 +107,7 @@ export function usePanoramaScene({
           camera.updateMatrixWorld();
 
           if (hotspots && hotspots.length > 0) {
-            const updated: ProjectedHotspot[] = hotspots.map((hs) => {
-              const pos3D = new THREE.Vector3(...hs.position)
-                .normalize()
-                .multiplyScalar(HOTSPOT_RADIUS);
-
-              const camDir = new THREE.Vector3();
-              camera.getWorldDirection(camDir);
-              const isBehind = pos3D.clone().normalize().dot(camDir) < 0.2;
-
-              pos3D.project(camera);
-
-              const screenX = ((pos3D.x + 1) * screenWidth) / 2;
-              const screenY = ((-pos3D.y + 1) * screenHeight) / 2;
-
-              return {
-                ...hs,
-                screenX,
-                screenY,
-                visible: !isBehind && pos3D.z < 1,
-              };
-            });
-
-            setProjectedHotspots(updated);
+            setProjectedHotspots(projectHotspots(camera, hotspots, screenWidth, screenHeight));
           }
 
           renderer.render(scene, camera);
@@ -237,11 +153,11 @@ export function usePanoramaScene({
   };
 
   return {
-    panHandlers: panResponder.panHandlers,
+    panHandlers,
     projectedHotspots,
     loadError,
     onContextCreate,
-    updateCameraAspect,
+    updateCameraAspect: syncFromGL,
     disposeScene,
   };
 }
