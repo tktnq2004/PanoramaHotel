@@ -10,14 +10,16 @@ interface Props {
   imageUrl: string;
   hotspots: HotspotItem[];
   onBack?: () => void;
+  onReady?: () => void;
 }
 
-export default function PanoramaViewer({ imageUrl, hotspots, onBack }: Props) {
+export default function PanoramaViewer({ imageUrl, hotspots, onBack, onReady }: Props) {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const {
     panHandlers,
     projectedHotspots,
     loadError,
+    isReady,
     onContextCreate,
     updateCameraAspect,
     disposeScene,
@@ -30,6 +32,10 @@ export default function PanoramaViewer({ imageUrl, hotspots, onBack }: Props) {
   useEffect(() => {
     return () => disposeScene();
   }, []);
+
+  useEffect(() => {
+    if (isReady) onReady?.();
+  }, [isReady]);
 
   return (
     <View style={styles.container} {...panHandlers}>

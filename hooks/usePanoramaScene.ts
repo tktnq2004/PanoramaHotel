@@ -26,11 +26,13 @@ export function usePanoramaScene({
   const sphereMeshRef = useRef<THREE.Mesh | null>(null);
   const animationFrameRef = useRef<number | null>(null);
 
-  const { panHandlers, lonRef, latRef } = useOrbitControls();
+  const { panHandlers, lonRef, latRef, fovRef } = useOrbitControls();
   const { glRef, rendererRef, cameraRef, applySurfaceSize, syncFromGL } = useGLViewportSync();
 
   const [projectedHotspots, setProjectedHotspots] = useState<ProjectedHotspot[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [isReady, setIsReady] = useState(false);
+  const hasSignaledReadyRef = useRef(false);
 
   const onContextCreate = async (gl: any) => {
     // Bọc toàn bộ phần khởi tạo (load + upload texture) trong try/catch: đây là
@@ -96,6 +98,14 @@ export function usePanoramaScene({
           // bắt kịp thời điểm xoay màn hình xong dù nó xảy ra bất đồng bộ.
           applySurfaceSize(gl.drawingBufferWidth, gl.drawingBufferHeight);
 
+          // Đồng bộ FOV camera theo gesture pinch (useOrbitControls cập nhật
+          // fovRef mỗi lần 2 ngón di chuyển). Chỉ gọi updateProjectionMatrix khi
+          // giá trị thực sự đổi để tránh tính toán lại ma trận thừa mỗi frame.
+          if (camera.fov !== fovRef.current) {
+            camera.fov = fovRef.current;
+            camera.updateProjectionMatrix();
+          }
+
           const phi = THREE.MathUtils.degToRad(90 - latRef.current);
           const theta = THREE.MathUtils.degToRad(lonRef.current);
 
@@ -112,6 +122,14 @@ export function usePanoramaScene({
 
           renderer.render(scene, camera);
           gl.endFrameEXP();
+
+          // Báo hiệu "đã render xong khung hình đầu tiên" đúng 1 lần, để nơi
+          // gọi (màn hình viewer) biết khi nào an toàn để fade màn chuyển cảnh
+          // trở lại, thay vì đoán một khoảng thời gian cố định.
+          if (!hasSignaledReadyRef.current) {
+            hasSignaledReadyRef.current = true;
+            setIsReady(true);
+          }
         } catch (error) {
           // Lỗi xảy ra giữa lúc render (vd. context bị mất) sẽ lặp lại mỗi frame
           // nếu không dừng vòng lặp -> spam log/crash liên tục. Dừng hẳn RAF loop
@@ -156,6 +174,7 @@ export function usePanoramaScene({
     panHandlers,
     projectedHotspots,
     loadError,
+    isReady,
     onContextCreate,
     updateCameraAspect: syncFromGL,
     disposeScene,

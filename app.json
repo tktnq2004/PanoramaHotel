@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "PanoramaHotel",
-    "slug": "PanoramaHotel",
+    "name": "PanoramaTour",
+    "slug": "PanoramaTour",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
-    "scheme": "panoramahotel",
+    "scheme": "panoramatour",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
