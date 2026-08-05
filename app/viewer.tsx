@@ -52,6 +52,7 @@ export default function ViewerScreen() {
         selectedInfo,
         setSelectedInfo,
         handleHotspotPress,
+        getPanoramaById,
     } = usePanoramaNavigation({ roomId, panoramaId });
 
     // Hiệu ứng chuyển cảnh "fade qua màu đen" khi đổi panorama: che màn hình lại
@@ -110,10 +111,21 @@ export default function ViewerScreen() {
                 <PanoramaViewer
                     key={currentPano.id}
                     imageUrl={currentPano.imageUrl}
-                    hotspots={currentPano.hotspots.map((hs) => ({
-                        ...hs,
-                        onPress: () => handleHotspotPress(hs),
-                    }))}
+                    hotspots={currentPano.hotspots.map((hs) => {
+                        // Hotspot NAVIGATION cần ảnh + tên panorama đích để hiện
+                        // thẻ xem trước khi người dùng giữ ngón tay lên marker.
+                        const target =
+                            hs.type === 'NAVIGATION' && hs.targetPanoramaId
+                                ? getPanoramaById(hs.targetPanoramaId)
+                                : undefined;
+
+                        return {
+                            ...hs,
+                            onPress: () => handleHotspotPress(hs),
+                            previewImageUrl: target?.imageUrl,
+                            previewLabel: target?.name,
+                        };
+                    })}
                     onReady={handlePanoramaReady}
                 />
             ) : (

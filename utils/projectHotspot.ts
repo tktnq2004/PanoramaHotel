@@ -6,6 +6,10 @@ export interface HotspotItem {
   position: [number, number, number];
   type?: 'INFO' | 'NAVIGATION';
   onPress: () => void;
+  // Chỉ có ở hotspot NAVIGATION: ảnh + tên của panorama đích, dùng để hiện
+  // thẻ xem trước khi người dùng giữ ngón tay lên hotspot.
+  previewImageUrl?: string;
+  previewLabel?: string;
 }
 
 export interface ProjectedHotspot extends HotspotItem {

@@ -39,7 +39,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headername}>PanoramaTour</Text>
+        <Text style={styles.headername}>Panorama</Text>
         <Text style={styles.headerSubname}>Khám phá Resort & Khách sạn 360°</Text>
       </View>
 

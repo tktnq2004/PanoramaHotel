@@ -52,11 +52,14 @@ export function usePanoramaNavigation({ roomId, panoramaId }: UsePanoramaNavigat
         }
     };
 
+    const getPanoramaById = (id: string): PanoramaData | undefined => panoramaMap.get(id)?.panorama;
+
     return {
         currentPano,
         currentRoom,
         selectedInfo,
         setSelectedInfo,
         handleHotspotPress,
+        getPanoramaById,
     };
 }
