@@ -12,9 +12,9 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-na
 
 const TRANSITION_FADE_IN_MS = 220;
 const TRANSITION_FADE_OUT_MS = 350;
-// Lưới an toàn: nếu vì lý do gì đó panorama mới không bao giờ báo "sẵn sàng"
-// (ảnh lỗi, mạng chậm...), vẫn phải mở lại màn hình sau tối đa khoảng này,
-// không được kẹt màn đen vĩnh viễn.
+/*Lưới an toàn: nếu vì lý do gì đó panorama mới không bao giờ báo "sẵn sàng" 
+(ảnh lỗi, mạng chậm...), vẫn phải mở lại màn hình sau tối đa khoảng này,
+không được kẹt màn đen vĩnh viễn. */
 const TRANSITION_MAX_WAIT_MS = 1500;
 
 export default function ViewerScreen() {
@@ -22,19 +22,19 @@ export default function ViewerScreen() {
     const { roomId, panoramaId } = useLocalSearchParams<{ roomId?: string; panoramaId?: string }>();
     const { width, height } = useWindowDimensions();
 
-    // GLView chụp lại kích thước GL viewport CHỈ MỘT LẦN lúc tạo context (native
-    // expo-gl không tự cập nhật lại sau đó). Nếu mount GLView trước khi xoay màn
-    // hình xong (đặc biệt lúc cold start / mở lại app sau khi bị kill), context
-    // đó sẽ "đóng băng" vĩnh viễn với kích thước sai -> ảnh méo hoặc nửa đen suốt
-    // vòng đời GLView đó. Chỉ mount PanoramaViewer khi lockAsync đã resolve VÀ
-    // useWindowDimensions đã thật sự phản ánh layout ngang (width > height).
+    /* GLView chụp lại kích thước GL viewport CHỈ MỘT LẦN lúc tạo context (native
+    expo-gl không tự cập nhật lại sau đó). Nếu mount GLView trước khi xoay màn
+    hình xong (đặc biệt lúc cold start / mở lại app sau khi bị kill), context
+    đó sẽ "đóng băng" vĩnh viễn với kích thước sai -> ảnh méo hoặc nửa đen suốt
+    vòng đời GLView đó. Chỉ mount PanoramaViewer khi lockAsync đã resolve VÀ
+    useWindowDimensions đã thật sự phản ánh layout ngang (width > height). */
     const [orientationLocked, setOrientationLocked] = useState(false);
     const isLandscapeReady = orientationLocked && width > height;
 
     useEffect(() => {
         let cancelled = false;
-        // .catch() để không bao giờ bị kẹt màn hình loading nếu API khoá xoay
-        // không khả dụng/bị từ chối trên một số nền tảng hoặc thiết bị.
+        /*.catch() để không bao giờ bị kẹt màn hình loading nếu API khoá xoay
+        không khả dụng/bị từ chối trên một số nền tảng hoặc thiết bị. */
         ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_RIGHT)
             .catch(() => {})
             .then(() => {
@@ -53,13 +53,15 @@ export default function ViewerScreen() {
         setSelectedInfo,
         handleHotspotPress,
         getPanoramaById,
+        canGoBack,
+        goBack,
     } = usePanoramaNavigation({ roomId, panoramaId });
 
-    // Hiệu ứng chuyển cảnh "fade qua màu đen" khi đổi panorama: che màn hình lại
-    // trước khi GLView cũ unmount/GLView mới mount (bản thân việc remount này
-    // luôn có một khoảng ngắn không có gì để hiển thị), rồi chỉ mở lại khi
-    // panorama mới đã thật sự render xong khung hình đầu tiên (tín hiệu isReady
-    // từ usePanoramaScene) — không đoán một khoảng thời gian cố định.
+    /*Hiệu ứng chuyển cảnh "fade qua màu đen" khi đổi panorama: che màn hình lại
+    trước khi GLView cũ unmount/GLView mới mount (bản thân việc remount này
+    luôn có một khoảng ngắn không có gì để hiển thị), rồi chỉ mở lại khi
+    panorama mới đã thật sự render xong khung hình đầu tiên (tín hiệu isReady
+    từ usePanoramaScene) — không đoán một khoảng thời gian cố định. */
     const reducedMotion = useReducedMotion();
     const fadeOpacity = useSharedValue(0);
     const [isTransitioning, setIsTransitioning] = useState(false);
@@ -104,7 +106,9 @@ export default function ViewerScreen() {
             <ViewerHeader
                 roomName={currentRoom.name}
                 panoName={currentPano.name}
-                onBack={() => router.back()}
+                onBackToHome={() => router.back()}
+                onReturn={goBack}
+                canReturn={canGoBack}
             />
 
             {isLandscapeReady ? (
@@ -112,8 +116,8 @@ export default function ViewerScreen() {
                     key={currentPano.id}
                     imageUrl={currentPano.imageUrl}
                     hotspots={currentPano.hotspots.map((hs) => {
-                        // Hotspot NAVIGATION cần ảnh + tên panorama đích để hiện
-                        // thẻ xem trước khi người dùng giữ ngón tay lên marker.
+                        /* Hotspot NAVIGATION cần ảnh + tên panorama đích để hiện
+                        thẻ xem trước khi người dùng giữ ngón tay lên marker.*/
                         const target =
                             hs.type === 'NAVIGATION' && hs.targetPanoramaId
                                 ? getPanoramaById(hs.targetPanoramaId)

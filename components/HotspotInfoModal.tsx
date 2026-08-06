@@ -12,12 +12,12 @@ interface Props {
     onClose: () => void;
 }
 
-// Cố tình KHÔNG dùng React Native <Modal>: Modal tạo một cửa sổ/surface native
-// riêng, và hiển thị nó đè lên GLView (expo-gl) đang render mỗi frame là tổ hợp
-// gây crash rất hay gặp trên Android (đặc biệt với New Architecture) vì việc
-// tạo/huỷ window của Modal làm gián đoạn EGL surface giữa lúc vòng lặp render
-// vẫn đang gọi gl.endFrameEXP(). Overlay View tuyệt đối bên dưới an toàn hơn
-// vì không đụng tới window hệ thống, chỉ vẽ trong cùng cây view của RN.
+/*  KHÔNG dùng React Native <Modal>: Modal tạo một cửa sổ/surface native
+    riêng, và hiển thị nó đè lên GLView (expo-gl) đang render mỗi frame là tổ hợp
+    gây crash rất hay gặp trên Android (đặc biệt với New Architecture) vì việc
+    tạo/huỷ window của Modal làm gián đoạn EGL surface giữa lúc vòng lặp render
+    vẫn đang gọi gl.endFrameEXP(). Overlay View tuyệt đối bên dưới an toàn hơn
+    vì không đụng tới window hệ thống, chỉ vẽ trong cùng cây view của RN. */
 export default function HotspotInfoModal({ info, onClose }: Props) {
     const reducedMotion = useReducedMotion();
     if (!info) return null;

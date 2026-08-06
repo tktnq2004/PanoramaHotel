@@ -51,9 +51,9 @@ function HotspotMarker({ hotspot }: { hotspot: ProjectedHotspot }) {
   const [isPeeking, setIsPeeking] = useState(false);
   const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Vòng pulse quanh marker: kéo chú ý người dùng tới hotspot trên ảnh 360 —
-  // đây là quy ước quen thuộc của các app virtual tour (Matterport-style),
-  // không phải hiệu ứng trang trí. Tắt hẳn khi bật "Giảm chuyển động".
+  /*Vòng pulse quanh marker: kéo chú ý người dùng tới hotspot trên ảnh 360 —
+  đây là quy ước quen thuộc của các app virtual tour (Matterport-style),
+  không phải hiệu ứng trang trí. Tắt hẳn khi bật "Giảm chuyển động". */
   useEffect(() => {
     if (reducedMotion) return;
     pulse.value = withRepeat(withTiming(1, { duration: 1600, easing: Easing.out(Easing.ease) }), -1, false);
@@ -192,9 +192,6 @@ const styles = StyleSheet.create({
   },
   peekCard: {
     position: 'absolute',
-    // Neo theo "top" từ đỉnh wrapper (trùng đỉnh icon marker) thay vì "bottom"
-    // — dùng "bottom" trước đây phụ thuộc chiều cao label chip bên dưới (vốn
-    // không cố định), khiến thẻ xem trước bị đè lên icon.
     top: -(PEEK_HEIGHT + PEEK_GAP),
     width: PEEK_WIDTH,
     height: PEEK_HEIGHT,

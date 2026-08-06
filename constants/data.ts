@@ -289,7 +289,7 @@ export const PANORAMA_DATA: Record<string, Room> = {
             id: 'hs_main_to_bath',
             type: 'NAVIGATION',
             name: 'Bathroom',
-            targetPanoramaId: 'bath_room',
+            targetPanoramaId: 'bath_room_101',
             position: [18, -2.9, -8.2],
           },
           {
@@ -302,7 +302,7 @@ export const PANORAMA_DATA: Record<string, Room> = {
         ],
       },
       {
-        id: 'bath_room',
+        id: 'bath_room_101',
         name: 'Bathroom',
         imageUrl: Asset.fromModule(require('../assets/images/hotel/101/bath_room.jpg')).uri,
         hotspots: [
@@ -345,7 +345,7 @@ export const PANORAMA_DATA: Record<string, Room> = {
             id: 'hs_main_to_bath',
             type: 'NAVIGATION',
             name: 'Bathroom',
-            targetPanoramaId: 'bath_room',
+            targetPanoramaId: 'bath_room_102',
             position: [15, 0.4, 13.2],
           },
           {
@@ -358,7 +358,7 @@ export const PANORAMA_DATA: Record<string, Room> = {
         ],
       },
       {
-        id: 'bath_room',
+        id: 'bath_room_102',
         name: 'Bathroom',
         imageUrl: Asset.fromModule(require('../assets/images/hotel/102/bath_room.jpg')).uri,
         hotspots: [
@@ -393,7 +393,7 @@ export const PANORAMA_DATA: Record<string, Room> = {
           {
             id: 'hs_bedroom_to_main',
             type: 'NAVIGATION',
-            name: 'Main Roomr',
+            name: 'Main Room',
             targetPanoramaId: 'main_room_102',
             position: [-15.2, -1.5, 12.9],
           },

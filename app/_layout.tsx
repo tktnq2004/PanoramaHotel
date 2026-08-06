@@ -19,11 +19,9 @@ export {
 } from 'expo-router';
 
 export const unstable_settings = {
-  // Đặt trang index làm route khởi chạy mặc định
   initialRouteName: 'index',
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {

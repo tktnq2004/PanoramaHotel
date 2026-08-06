@@ -1,23 +1,40 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Colors } from '@/constants/theme';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 interface Props {
     roomName: string;
     panoName: string;
-    onBack: () => void;
+    onBackToHome: () => void;
+    onReturn: () => void;
+    canReturn: boolean;
 }
 
-export default function ViewerHeader({ roomName, panoName, onBack }: Props) {
+export default function ViewerHeader({ roomName, panoName, onBackToHome, onReturn, canReturn }: Props) {
     return (
         <View style={styles.header}>
-            <TouchableOpacity
-                style={styles.backBtnWrapper}
-                onPress={onBack}
-                activeOpacity={0.7}
-            >
-                <Text style={styles.backBtn}>‹ Quay lại</Text>
-            </TouchableOpacity>
+            <View style={styles.leftButtons}>
+                {canReturn && (
+                    <TouchableOpacity
+                        style={styles.backBtnWrapper}
+                        onPress={onReturn}
+                        activeOpacity={0.7}
+                    >
+                        <Ionicons name="arrow-undo" size={14} color={Colors.white} />
+                        <Text style={styles.backBtn}>Return</Text>
+                    </TouchableOpacity>
+                )}
+
+                <TouchableOpacity
+                    style={styles.backBtnWrapper}
+                    onPress={onBackToHome}
+                    activeOpacity={0.7}
+                >
+                    <Ionicons name="home-outline" size={14} color={Colors.white} />
+                    <Text style={styles.backBtn}>Back to home</Text>
+                </TouchableOpacity>
+            </View>
 
             <View style={styles.titleContainer}>
                 <Text style={styles.roomName}>{roomName}</Text>
@@ -38,7 +55,15 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
     },
+    leftButtons: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
     backBtnWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
         backgroundColor: Colors.overlay.header,
         paddingHorizontal: 14,
         paddingVertical: 8,

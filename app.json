@@ -1,25 +1,27 @@
 {
   "expo": {
-    "name": "PanoramaTour",
-    "slug": "PanoramaTour",
+    "name": "PanoraStay",
+    "slug": "panorastay",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
-    "scheme": "panoramatour",
+    "scheme": "panorastay",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0B0C0E"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.panorastay.app"
     },
     "android": {
+      "package": "com.panorastay.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0B0C0E"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
