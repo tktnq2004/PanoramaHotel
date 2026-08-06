@@ -1,5 +1,5 @@
-import { Colors, Fonts, Radius } from '@/constants/theme';
 import { PANORAMA_DATA, Room } from '@/constants/data';
+import { Colors, Fonts, Radius } from '@/constants/theme';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -39,7 +39,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headername}>Panorama</Text>
+        <Text style={styles.headername}>PanoraStay</Text>
         <Text style={styles.headerSubname}>Hotel and Resort 360°</Text>
       </View>
 
