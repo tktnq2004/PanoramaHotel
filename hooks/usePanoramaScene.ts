@@ -70,6 +70,19 @@ export function usePanoramaScene({
 
       const texture = await new TextureLoader().loadAsync(resolvedUri);
 
+      // expo-three tự resolve lại kích thước ảnh từ URI (qua expo-asset-utils,
+      // KHÔNG đi qua Metro asset registry như Asset.fromModule ở trên) bằng
+      // Image.getSize() của React Native — API này thường trả về kích thước
+      // bị chia đôi cho ảnh lớn dạng equirectangular trên Android, khiến
+      // gl.texImage2D nhận header kích thước sai trong khi ảnh giải mã thật
+      // lớn hơn -> lỗi GL_INVALID_VALUE và cả mặt cầu hiện màu đen (đã xác
+      // minh qua log thiết bị thật lẫn emulator). asset.width/height từ
+      // Metro registry (dòng trên) luôn đúng nên ghi đè lại để dùng số đúng.
+      if (texture.image && asset.width && asset.height) {
+        (texture.image as any).width = asset.width;
+        (texture.image as any).height = asset.height;
+      }
+
       // GL không tự báo lỗi khi ảnh vượt GL_MAX_TEXTURE_SIZE của thiết bị —
       // texture chỉ âm thầm "incomplete" (đen/méo) mà không ném exception nào.
       // Chủ động so sánh kích thước thật của ảnh với giới hạn GPU và tự ném lỗi
