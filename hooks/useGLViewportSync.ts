@@ -2,14 +2,6 @@ import { Renderer } from 'expo-three';
 import { useRef } from 'react';
 import * as THREE from 'three';
 
-// Áp size thật của GL surface cho renderer + camera. Không dùng kích thước từ
-// useWindowDimensions làm nguồn chân lý vì chúng có thể lệch pha với kích
-// thước thật của GLView khi ScreenOrientation.lockAsync đang xoay màn hình bất
-// đồng bộ — đây là nguyên nhân ảnh bị bóp méo ở lần load đầu và luôn xảy ra
-// trên các thiết bị/emulator có độ trễ xoay lớn hơn. Ngoài ra, expo-gl chỉ set
-// gl.drawingBufferWidth/Height MỘT LẦN lúc tạo context (glGetIntegerv trong
-// EXGLNativeContext.cpp), không tự cập nhật lại — nên `syncFromGL` phải được
-// gọi lại mỗi frame để bắt kịp đúng thời điểm giá trị đó ổn định.
 export function useGLViewportSync() {
   const glRef = useRef<any>(null);
   const rendererRef = useRef<Renderer | null>(null);

@@ -8,6 +8,16 @@ const DEFAULT_FOV = 75;
 const MIN_FOV = 30; // zoom in tối đa, tránh phóng to quá gây vỡ nét texture
 const MAX_FOV = 90; // zoom out tối đa, giữ dưới ~100 để hạn chế méo rìa khung hình
 
+// Ngưỡng khoảng cách (px) phải vượt qua trước khi PanResponder được phép
+// giành quyền responder. Ngón tay thật KHÔNG BAO GIỜ đứng yên tuyệt đối lúc
+// tap/giữ — luôn có rung nhẹ vài pixel (khác hẳn adb tap giả lập, luôn 0 dx/dy).
+// Nếu để onMoveShouldSetPanResponder trả về true ngay khi có bất kỳ chuyển
+// động nào (dù 1px), PanResponder vẫn thắng Pressable của hotspot trong MỌI
+// trường hợp trên thiết bị thật — tap không bao giờ tới được hotspot, giữ tay
+// cũng bị hiểu nhầm thành kéo xoay. Phải chờ di chuyển vượt ngưỡng rõ ràng mới
+// tính là kéo thật.
+const MOVE_THRESHOLD = 8;
+
 function getTouchDistance(touches: { pageX: number; pageY: number }[]) {
   const [a, b] = touches;
   const dx = a.pageX - b.pageX;
@@ -30,8 +40,16 @@ export function useOrbitControls() {
 
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
+      // CHỈ giành quyền responder khi thật sự có di chuyển (kéo để xoay/pinch),
+      // không giành ngay lúc vừa chạm tay xuống. Nếu giành ngay từ
+      // onStartShouldSetPanResponder, view cha (bọc toàn bộ panorama, kể cả
+      // các marker hotspot bên trong) sẽ "cướp" cảm ứng trước khi Pressable
+      // của hotspot kịp xử lý tap — khiến bấm hotspot không phản ứng hoặc phải
+      // bấm nhiều lần mới ăn. Nhường quyền cho con xử lý tap trước, chỉ nhận
+      // lại khi có chuyển động thật (đủ để phân biệt với 1 cú tap đứng yên).
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) =>
+        Math.abs(gestureState.dx) > MOVE_THRESHOLD || Math.abs(gestureState.dy) > MOVE_THRESHOLD,
       onPanResponderGrant: () => {
         lastGestureRef.current = { x: 0, y: 0 };
         pinchRef.current = null;

@@ -1,8 +1,8 @@
+import { HotspotItem, ProjectedHotspot, projectHotspots } from '@/utils/projectHotspot';
 import { Asset } from 'expo-asset';
 import { Renderer, TextureLoader } from 'expo-three';
 import { useRef, useState } from 'react';
 import * as THREE from 'three';
-import { HotspotItem, ProjectedHotspot, projectHotspots } from '@/utils/projectHotspot';
 import { useGLViewportSync } from './useGLViewportSync';
 import { useOrbitControls } from './useOrbitControls';
 
@@ -11,7 +11,7 @@ export type { HotspotItem, ProjectedHotspot } from '@/utils/projectHotspot';
 const SPHERE_RADIUS = 500;
 
 interface UsePanoramaSceneParams {
-  // require() ảnh local (số module Metro gán) — không phải URI đã resolve.
+
   imageUrl: number;
   hotspots: HotspotItem[];
   screenWidth: number;
@@ -59,25 +59,12 @@ export function usePanoramaScene({
       const geometry = new THREE.SphereGeometry(SPHERE_RADIUS, 60, 40);
       geometry.scale(-1, 1, 1);
 
-      // Asset.fromModule(...).uri chỉ là URL Metro dev server hợp lệ lúc chạy
-      // qua Expo Go/dev client. Trong bản release/standalone (không có Metro),
-      // phải chủ động downloadAsync() để asset được "giải nén" ra file thật
-      // (.localUri) rồi mới nạp cho TextureLoader — nếu không, texture load
-      // thất bại âm thầm và cả mặt cầu hiện ra màu đen dù không ném lỗi nào.
       const asset = Asset.fromModule(imageUrl);
       await asset.downloadAsync();
       const resolvedUri = asset.localUri ?? asset.uri;
 
       const texture = await new TextureLoader().loadAsync(resolvedUri);
 
-      // expo-three tự resolve lại kích thước ảnh từ URI (qua expo-asset-utils,
-      // KHÔNG đi qua Metro asset registry như Asset.fromModule ở trên) bằng
-      // Image.getSize() của React Native — API này thường trả về kích thước
-      // bị chia đôi cho ảnh lớn dạng equirectangular trên Android, khiến
-      // gl.texImage2D nhận header kích thước sai trong khi ảnh giải mã thật
-      // lớn hơn -> lỗi GL_INVALID_VALUE và cả mặt cầu hiện màu đen (đã xác
-      // minh qua log thiết bị thật lẫn emulator). asset.width/height từ
-      // Metro registry (dòng trên) luôn đúng nên ghi đè lại để dùng số đúng.
       if (texture.image && asset.width && asset.height) {
         (texture.image as any).width = asset.width;
         (texture.image as any).height = asset.height;
@@ -96,11 +83,6 @@ export function usePanoramaScene({
         );
       }
 
-      // Ảnh nguồn có thể ở bất kỳ kích thước/tỉ lệ nào (kể cả ảnh người dùng
-      // upload sau này, không nhất thiết lũy thừa 2). Mipmap mặc định của
-      // three.js với ảnh NPOT khiến texture "incomplete" -> hiện màu đen trên
-      // nhiều driver GLES Android. Tắt mipmap + dùng lọc tuyến tính để luôn an
-      // toàn với mọi kích thước ảnh, đồng thời đỡ tốn thời gian dựng mipmap.
       texture.generateMipmaps = false;
       texture.minFilter = THREE.LinearFilter;
       texture.magFilter = THREE.LinearFilter;

@@ -25,10 +25,12 @@ const PEEK_WIDTH = 100;
 const PEEK_HEIGHT = 65;
 // Khoảng cách giữa đáy thẻ xem trước và đỉnh icon marker.
 const PEEK_GAP = 18;
-// Ngưỡng giữ tay trước khi hiện thẻ xem trước — đủ nhanh để không có cảm giác
-// trễ, nhưng vẫn đủ lâu để phân biệt rõ với một cú tap thường (chuyển cảnh
-// ngay lập tức, không đổi hành vi cũ).
-const HOLD_THRESHOLD_MS = 350;
+// Ngưỡng giữ tay trước khi hiện thẻ xem trước — khớp quy ước long-press chuẩn
+// của Android/iOS (~500ms). 350ms từng dùng thử nghiệm với input giả lập tức
+// thời (adb tap) là quá ngắn cho ngón tay thật: một cú "chạm nhanh" bình
+// thường của người dùng thực tế vẫn có thể giữ tiếp xúc 150-400ms, khiến app
+// hiểu nhầm thành giữ và hiện preview thay vì điều hướng ngay.
+const HOLD_THRESHOLD_MS = 500;
 
 export default function HotspotOverlay({ hotspots }: Props) {
   return (
