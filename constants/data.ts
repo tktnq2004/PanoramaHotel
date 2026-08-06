@@ -1,5 +1,3 @@
-import { Asset } from 'expo-asset';
-
 export interface Hotspot {
   id: string;
   type: 'INFO' | 'NAVIGATION';
@@ -12,7 +10,13 @@ export interface Hotspot {
 export interface PanoramaData {
   id: string;
   name: string;
-  imageUrl: string;
+  // require() ảnh local — KHÔNG resolve sẵn thành .uri ở đây. Asset.fromModule(...).uri
+  // chỉ là URL Metro dev server hợp lệ lúc dev; trong bản release/standalone
+  // (không có Metro) nó trỏ tới 1 dạng tham chiếu asset nội bộ mà TextureLoader
+  // của Three.js không tự hiểu được -> texture load thất bại âm thầm, màn hình
+  // đen. Việc resolve ra URI thật (qua Asset.downloadAsync()) được làm ngay
+  // trước lúc nạp texture, trong usePanoramaScene.ts.
+  imageUrl: number;
   hotspots: Hotspot[];
 }
 
@@ -20,7 +24,7 @@ export interface Room {
   id: string;
   name: string;
   category?: string;
-  imageUrl?: string;
+  imageUrl?: number;
   panoramas: PanoramaData[];
 }
 
@@ -30,12 +34,12 @@ export const PANORAMA_DATA: Record<string, Room> = {
     id: 'resort_lythwood',
     name: 'Lythwood Highland Resort',
     category: 'RESORT',
-    imageUrl: Asset.fromModule(require('../assets/images/resort/living_room.jpg')).uri,
+    imageUrl: require('../assets/images/resort/living_room.jpg'),
     panoramas: [
       {
         id: 'living_room',
         name: 'Living Room',
-        imageUrl: Asset.fromModule(require('../assets/images/resort/living_room.jpg')).uri,
+        imageUrl: require('../assets/images/resort/living_room.jpg'),
         hotspots: [
           {
             id: 'hs_living_to_bedroom_1',
@@ -70,7 +74,7 @@ export const PANORAMA_DATA: Record<string, Room> = {
       {
         id: 'bed_room_1',
         name: 'Bedroom',
-        imageUrl: Asset.fromModule(require('../assets/images/resort/bed_room_1.jpg')).uri,
+        imageUrl: require('../assets/images/resort/bed_room_1.jpg'),
         hotspots: [
           {
             id: 'hs_bed_to_living',
@@ -91,7 +95,7 @@ export const PANORAMA_DATA: Record<string, Room> = {
       {
         id: 'bath_room_1',
         name: 'Bathroom',
-        imageUrl: Asset.fromModule(require('../assets/images/resort/bath_room_1.jpg')).uri,
+        imageUrl: require('../assets/images/resort/bath_room_1.jpg'),
         hotspots: [
           {
             id: 'hs_bath_to_bed',
@@ -119,7 +123,7 @@ export const PANORAMA_DATA: Record<string, Room> = {
       {
         id: 'bed_room_2',
         name: 'Bedroom',
-        imageUrl: Asset.fromModule(require('../assets/images/resort/bed_room_2.jpg')).uri,
+        imageUrl: require('../assets/images/resort/bed_room_2.jpg'),
         hotspots: [
           {
             id: 'hs_bed_to_living',
@@ -147,7 +151,7 @@ export const PANORAMA_DATA: Record<string, Room> = {
       {
         id: 'bath_room_2',
         name: 'Bathroom',
-        imageUrl: Asset.fromModule(require('../assets/images/resort/bath_room_2.jpg')).uri,
+        imageUrl: require('../assets/images/resort/bath_room_2.jpg'),
         hotspots: [
           {
             id: 'hs_bath_to_bed',
@@ -175,7 +179,7 @@ export const PANORAMA_DATA: Record<string, Room> = {
       {
         id: 'kitchen_dining',
         name: 'Kitchen & Dining',
-        imageUrl: Asset.fromModule(require('../assets/images/resort/kitchen_dining.jpg')).uri,
+        imageUrl: require('../assets/images/resort/kitchen_dining.jpg'),
         hotspots: [
           {
             id: 'hs_kitchen_to_living',
@@ -210,7 +214,7 @@ export const PANORAMA_DATA: Record<string, Room> = {
       {
         id: 'entertainment_room',
         name: 'Phòng Giải Trí',
-        imageUrl: Asset.fromModule(require('../assets/images/resort/entertainment_room.jpg')).uri,
+        imageUrl: require('../assets/images/resort/entertainment_room.jpg'),
         hotspots: [
           {
             id: 'hs_entertainment_to_lounge',
@@ -243,12 +247,12 @@ export const PANORAMA_DATA: Record<string, Room> = {
     id: 'hotel_conrad',
     name: 'Conrad Towers Hotel',
     category: 'HOTEL',
-    imageUrl: Asset.fromModule(require('../assets/images/hotel/hallway_room.jpg')).uri,
+    imageUrl: require('../assets/images/hotel/hallway_room.jpg'),
     panoramas: [
       {
         id: 'hallway',
         name: 'Hall Way',
-        imageUrl: Asset.fromModule(require('../assets/images/hotel/hallway_room.jpg')).uri,
+        imageUrl: require('../assets/images/hotel/hallway_room.jpg'),
         hotspots: [
           {
             id: 'hs_hall_to_room101',
@@ -276,7 +280,7 @@ export const PANORAMA_DATA: Record<string, Room> = {
       {
         id: 'main_room_101',
         name: 'Main Room',
-        imageUrl: Asset.fromModule(require('../assets/images/hotel/101/main_room.jpg')).uri,
+        imageUrl: require('../assets/images/hotel/101/main_room.jpg'),
         hotspots: [
           {
             id: 'hs_main_to_hall',
@@ -304,7 +308,7 @@ export const PANORAMA_DATA: Record<string, Room> = {
       {
         id: 'bath_room_101',
         name: 'Bathroom',
-        imageUrl: Asset.fromModule(require('../assets/images/hotel/101/bath_room.jpg')).uri,
+        imageUrl: require('../assets/images/hotel/101/bath_room.jpg'),
         hotspots: [
           {
             id: 'hs_bath_b_to_main',
@@ -332,7 +336,7 @@ export const PANORAMA_DATA: Record<string, Room> = {
       {
         id: 'main_room_102',
         name: 'Main Room',
-        imageUrl: Asset.fromModule(require('../assets/images/hotel/102/main_room.jpg')).uri,
+        imageUrl: require('../assets/images/hotel/102/main_room.jpg'),
         hotspots: [
           {
             id: 'hs_main_to_hall',
@@ -360,7 +364,7 @@ export const PANORAMA_DATA: Record<string, Room> = {
       {
         id: 'bath_room_102',
         name: 'Bathroom',
-        imageUrl: Asset.fromModule(require('../assets/images/hotel/102/bath_room.jpg')).uri,
+        imageUrl: require('../assets/images/hotel/102/bath_room.jpg'),
         hotspots: [
           {
             id: 'hs_bath_to_main',
@@ -388,7 +392,7 @@ export const PANORAMA_DATA: Record<string, Room> = {
       {
         id: 'bed_room',
         name: 'Bedroom',
-        imageUrl: Asset.fromModule(require('../assets/images/hotel/102/bed_room.jpg')).uri,
+        imageUrl: require('../assets/images/hotel/102/bed_room.jpg'),
         hotspots: [
           {
             id: 'hs_bedroom_to_main',

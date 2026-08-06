@@ -7,7 +7,7 @@ import { StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'r
 import HotspotOverlay from './HotspotOverlay';
 
 interface Props {
-  imageUrl: string;
+  imageUrl: number;
   hotspots: HotspotItem[];
   onBack?: () => void;
   onReady?: () => void;

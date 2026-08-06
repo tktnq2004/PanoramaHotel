@@ -7,8 +7,9 @@ export interface HotspotItem {
   type?: 'INFO' | 'NAVIGATION';
   onPress: () => void;
   // Chỉ có ở hotspot NAVIGATION: ảnh + tên của panorama đích, dùng để hiện
-  // thẻ xem trước khi người dùng giữ ngón tay lên hotspot.
-  previewImageUrl?: string;
+  // thẻ xem trước khi người dùng giữ ngón tay lên hotspot. require() ảnh
+  // local, không phải URI đã resolve — dùng thẳng làm source cho <Image>.
+  previewImageUrl?: number;
   previewLabel?: string;
 }
 

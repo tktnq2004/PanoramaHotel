@@ -98,7 +98,7 @@ function HotspotMarker({ hotspot }: { hotspot: ProjectedHotspot }) {
           style={styles.peekCard}
           pointerEvents="none"
         >
-          <Image source={{ uri: hotspot.previewImageUrl }} style={styles.peekImage} resizeMode="cover" />
+          <Image source={hotspot.previewImageUrl} style={styles.peekImage} resizeMode="cover" />
         </Animated.View>
       )}
 

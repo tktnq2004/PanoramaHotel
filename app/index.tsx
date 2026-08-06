@@ -84,7 +84,7 @@ function PropertyCard({ item, index, reducedMotion, onPress }: PropertyCardProps
           }}
           onPress={onPress}
         >
-          <Image source={{ uri: item.imageUrl }} style={styles.cardImage} />
+          <Image source={item.imageUrl} style={styles.cardImage} />
           <LinearGradient
             colors={['rgba(6,7,8,0)', 'rgba(6,7,8,0.15)', Colors.overlay.scrimStrong]}
             locations={[0, 0.5, 1]}

@@ -1,3 +1,4 @@
+import { Asset } from 'expo-asset';
 import { Renderer, TextureLoader } from 'expo-three';
 import { useRef, useState } from 'react';
 import * as THREE from 'three';
@@ -10,7 +11,8 @@ export type { HotspotItem, ProjectedHotspot } from '@/utils/projectHotspot';
 const SPHERE_RADIUS = 500;
 
 interface UsePanoramaSceneParams {
-  imageUrl: string;
+  // require() ảnh local (số module Metro gán) — không phải URI đã resolve.
+  imageUrl: number;
   hotspots: HotspotItem[];
   screenWidth: number;
   screenHeight: number;
@@ -57,7 +59,16 @@ export function usePanoramaScene({
       const geometry = new THREE.SphereGeometry(SPHERE_RADIUS, 60, 40);
       geometry.scale(-1, 1, 1);
 
-      const texture = await new TextureLoader().loadAsync(imageUrl);
+      // Asset.fromModule(...).uri chỉ là URL Metro dev server hợp lệ lúc chạy
+      // qua Expo Go/dev client. Trong bản release/standalone (không có Metro),
+      // phải chủ động downloadAsync() để asset được "giải nén" ra file thật
+      // (.localUri) rồi mới nạp cho TextureLoader — nếu không, texture load
+      // thất bại âm thầm và cả mặt cầu hiện ra màu đen dù không ném lỗi nào.
+      const asset = Asset.fromModule(imageUrl);
+      await asset.downloadAsync();
+      const resolvedUri = asset.localUri ?? asset.uri;
+
+      const texture = await new TextureLoader().loadAsync(resolvedUri);
 
       // GL không tự báo lỗi khi ảnh vượt GL_MAX_TEXTURE_SIZE của thiết bị —
       // texture chỉ âm thầm "incomplete" (đen/méo) mà không ném exception nào.
